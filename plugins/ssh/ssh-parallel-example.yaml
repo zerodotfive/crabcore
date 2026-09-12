@@ -1,0 +1,4 @@
+---
+autocompleteHostRegex: ^[a-z]+\.[a-z]+\.[a-z0-9\-]+$
+commandsDefinition:
+  getHostname: /usr/bin/hostname

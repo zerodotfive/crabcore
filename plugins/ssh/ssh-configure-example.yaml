@@ -1,0 +1,74 @@
+---
+- filename: _track
+  content: |
+    Host track.router-01
+    StrictHostKeyChecking no
+    ForwardAgent yes
+
+    Host track.router-02
+    StrictHostKeyChecking no
+    ForwardAgent yes
+
+    Host track.app-01
+    StrictHostKeyChecking no
+    ForwardAgent yes
+
+    Host track.app-02
+    StrictHostKeyChecking no
+    ForwardAgent yes
+
+- filename: _test
+  content: |
+    Host test.router-01
+    StrictHostKeyChecking no
+    ForwardAgent yes
+
+    Host test.router-02
+    StrictHostKeyChecking no
+    ForwardAgent yes
+
+    Host test.prox-01
+    StrictHostKeyChecking no
+    ForwardAgent yes
+
+    Host test.prox-02
+    StrictHostKeyChecking no
+    ForwardAgent yes
+
+    Host test.prox-03
+    StrictHostKeyChecking no
+    ForwardAgent yes
+
+    Host test.prox-04
+    StrictHostKeyChecking no
+    ForwardAgent yes
+
+    Host test.prox-05
+    StrictHostKeyChecking no
+    ForwardAgent yes
+
+    Host test.prox-06
+    StrictHostKeyChecking no
+    ForwardAgent yes
+
+- filename: _prod
+  content: |
+    Host prod.router-01
+    StrictHostKeyChecking no
+    ForwardAgent yes
+
+    Host prod.router-02
+    StrictHostKeyChecking no
+    ForwardAgent yes
+
+    Host prod.db-01
+    StrictHostKeyChecking no
+    ForwardAgent yes
+
+    Host prod.db-02
+    StrictHostKeyChecking no
+    ForwardAgent yes
+
+    Host prod.db-03
+    StrictHostKeyChecking no
+    ForwardAgent yes

@@ -25,8 +25,8 @@ func (inst *InstallerLinux) Ensure() error {
 		return fmt.Errorf("installerLinux: ensureBin: %s", err)
 	}
 
-	if err := ensureBashrc(); err != nil {
-		return fmt.Errorf("installerLinux: ensureBashrc: %s", err)
+	if err := ensureShellRC(); err != nil {
+		return fmt.Errorf("installerLinux: ensureShellRC: %s", err)
 	}
 
 	return nil

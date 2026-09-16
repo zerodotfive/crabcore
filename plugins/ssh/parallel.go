@@ -63,6 +63,10 @@ func (m *sshParallelModule) Init(config []byte) error {
 
 	entries, err := os.ReadDir(sshConfigDPath)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+
 		return err
 	}
 

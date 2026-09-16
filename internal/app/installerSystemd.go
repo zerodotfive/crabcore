@@ -40,8 +40,8 @@ func (inst *InstallerSystemd) Ensure() error {
 		return fmt.Errorf("installerSystemd: ensureSystemdFile: %s", err)
 	}
 
-	if err := ensureBashrc(); err != nil {
-		return fmt.Errorf("installerSystemd: ensureBashrc: %s", err)
+	if err := ensureShellRC(); err != nil {
+		return fmt.Errorf("installerSystemd: ensureShellRC: %s", err)
 	}
 
 	return nil

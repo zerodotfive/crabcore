@@ -33,14 +33,18 @@ crabcore update
 For example:
 
 ```yaml
-binUrl: https://example.com/crabcore
-
+binUrl: 
+  linux-amd64: https://example.com/crabcore-linux-amd64
+  darwin-arm64: https://example.com/crabcore-darwin-arm64
 plugins:
   - plugin: ssh
     filename: ssh.so
-    url: https://example.com/ssh.so
+    url:
+      linux-amd64: https://example.com/ssh-linux-amd64.so
+      darwin-arm64: https://example.com/ssh-darwin-arm64.so
     moduleConfig:
-      ssh-config: https://example.com/ssh-config.yaml
+      configure: https://example.com/ssh-config.yaml
+      parallel: https://example.com/ssh-parallel.yaml
 ```
 
 `binUrl` is the URL of the current `crabcore` binary.
@@ -102,7 +106,7 @@ type plugin struct{}
 func (p *plugin) GetRoot() (*cobra.Command, error) {
 	pluginRoot := &cobra.Command{
 		Use:   pluginName,
-		Short: fmt.Sprintf("SSH commands"),
+		Short: fmt.Sprintf("Examaple commands"),
 	}
 
 	return pluginRoot, nil

@@ -23,7 +23,7 @@ type plugin struct{}
 func (p *plugin) GetRoot() (*cobra.Command, error) {
 	pluginRoot := &cobra.Command{
 		Use:   pluginName,
-		Short: fmt.Sprintf("SSH commands"),
+		Short: fmt.Sprintf("Examaple commands"),
 	}
 
 	return pluginRoot, nil

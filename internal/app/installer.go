@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -65,6 +66,18 @@ func ensureBin(binInstallPath string) error {
 	return nil
 }
 
+func ensureShellRC() error {
+	shell := path.Base(os.Getenv("SHELL"))
+	switch shell {
+	case "bash":
+		return ensureBashrc()
+	case "zsh":
+		return ensureZshrc()
+	default:
+		return nil
+	}
+}
+
 func ensureBashrc() error {
 	crabcoreLines := []byte(`
 PATH="$HOME/.local/bin:$PATH"
@@ -73,9 +86,9 @@ eval "$(crabcore completion bash)"
 
 	bashrcPath := paths.Bashrc()
 
-	content, err := os.ReadFile(bashrcPath)
-	if err != nil {
-		return err
+	content, _ := os.ReadFile(bashrcPath)
+	if content == nil {
+		content = []byte("")
 	}
 
 	if bytes.Contains(content, crabcoreLines) {
@@ -84,4 +97,25 @@ eval "$(crabcore completion bash)"
 
 	newContent := append(content, crabcoreLines...)
 	return os.WriteFile(bashrcPath, newContent, 0644)
+}
+
+func ensureZshrc() error {
+	crabcoreLines := []byte(`
+PATH="$HOME/.local/bin:$PATH"
+eval "source <(crabcore completion zsh)"
+`)
+
+	zshrcPath := paths.Zshrc()
+
+	content, _ := os.ReadFile(zshrcPath)
+	if content == nil {
+		content = []byte("")
+	}
+
+	if bytes.Contains(content, crabcoreLines) {
+		return nil
+	}
+
+	newContent := append(content, crabcoreLines...)
+	return os.WriteFile(zshrcPath, newContent, 0644)
 }

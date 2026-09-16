@@ -1,13 +1,13 @@
 ---
 binUrl:
-  linux-amd64: <site/dir url>/crabcore
-  <os>-<arch>: <site/dir url>/crabcore
+  linux-amd64: <site/dir url>/crabcore-linux-amd64
+  <os>-<arch>: <site/dir url>/crabcore-<os>-<arch>
 plugins:
 - plugin: ssh
   filename: ssh.so
   url:
-    linux-amd64: <site/dir url>/ssh.so
-    <os>-<arch>: <site/dir url>/ssh.so
+    linux-amd64: <site/dir url>/ssh-linux-amd64.so
+    <os>-<arch>: <site/dir url>/ssh-<os>-<arch>.so
   moduleConfig:
-    config: <site/dir url>/ssh-config.yaml
+    configure: <site/dir url>/ssh-config.yaml
     parallel: <site/dir url>/ssh-parallel.yaml

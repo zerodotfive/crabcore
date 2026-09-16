@@ -25,8 +25,16 @@ func SystemdUserDir() string {
 	return filepath.Join(Home(), ".config/systemd/user")
 }
 
+func LaunchAgentDir() string {
+	return filepath.Join(Home(), "Library/LaunchAgents")
+}
+
 func Bashrc() string {
 	return filepath.Join(Home(), ".bashrc")
+}
+
+func Zshrc() string {
+	return filepath.Join(Home(), ".zshrc")
 }
 
 func PluginLibDir() string {

@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-func getSHA256(path string) (string, error) {
+func GetSHA256(path string) (string, error) {
 	if _, err := os.Stat(path); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return "", nil

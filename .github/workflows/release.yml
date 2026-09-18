@@ -61,6 +61,16 @@ jobs:
             -o "dist/ssh-${{ matrix.os }}-${{ matrix.arch }}.so" \
             ./plugins/ssh
 
+      - name: Build kubernetes plugin
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+        run: |
+          go build \
+            -buildmode=plugin \
+            -o "dist/kubernetes-${{ matrix.os }}-${{ matrix.arch }}.so" \
+            ./plugins/kubernetes
+
       - name: Generate SHA256 checksums
         shell: bash
         run: |

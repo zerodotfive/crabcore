@@ -1,4 +1,4 @@
-# crabcore
+# 🦀 crabcore
 
 **crabcore** is a tool for managing the configuration of a user's working environment.
 

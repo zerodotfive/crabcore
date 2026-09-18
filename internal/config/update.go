@@ -39,7 +39,7 @@ func Update(cfg *LocalConfig, url string, forceRefetch bool) (bool, error) {
 			return false, fmt.Errorf("%s: %s", pluginConfigDir, err)
 		}
 		for module, moduleConfigURL := range plugin.ModuleConfig {
-			tmpChanged, err := fetch.EnsureFile(moduleConfigURL, paths.ModuleConfigPath(plugin.Name, module), false, 0600)
+			tmpChanged, err := fetch.EnsureFile(moduleConfigURL, paths.ModuleConfigPath(plugin.Name, module), "", 0600)
 			changed = changed || tmpChanged
 			if err != nil {
 				return false, err

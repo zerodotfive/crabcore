@@ -11,3 +11,11 @@ plugins:
   moduleConfig:
     configure: <site/dir url>/ssh-config.yaml
     parallel: <site/dir url>/ssh-parallel.yaml
+- plugin: kubernetes
+  filename: kubernetes.so
+  url:
+    linux-amd64: <site/dir url>/kubernetes-linux-amd64.so
+    <os>-<arch>: <site/dir url>/kubernetes-<os>-<arch>.so
+  moduleConfig:
+    install: <site/dir url>/kubernetes-configure.yaml
+    parallel: <site/dir url>/kubernetes-login.yaml

@@ -1,0 +1,5 @@
+---
+clusters:
+  your-cluster-name:
+    connect script
+    use variable $KNAME for alias etc.

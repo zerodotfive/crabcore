@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func Fetch(url string) ([]byte, error) {
+func Fetch(url string, progress bool) ([]byte, error) {
 	if strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://") {
 		resp, err := http.Get(url)
 		if err != nil {
@@ -18,6 +18,12 @@ func Fetch(url string) ([]byte, error) {
 
 		if resp.StatusCode != http.StatusOK {
 			return nil, fmt.Errorf("error loading file: %s", resp.Status)
+		}
+
+		if progress {
+			progressReader := &progressReader{url, resp.Body, resp.ContentLength, 0}
+
+			return io.ReadAll(progressReader)
 		}
 
 		return io.ReadAll(resp.Body)

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -26,6 +27,10 @@ func (m *sshConfigureModule) GetName() string {
 }
 
 func (m *sshConfigureModule) Init(config []byte) error {
+	if len(config) == 0 {
+		return errors.New("empty config")
+	}
+
 	m.sshConfigPath = path.Join(os.Getenv("HOME"), ".ssh/config")
 	m.sshConfigdPath = path.Join(os.Getenv("HOME"), ".ssh/crabcore.d")
 

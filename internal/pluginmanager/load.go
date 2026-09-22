@@ -11,6 +11,7 @@ import (
 	"github.com/zerodotfive/crabcore/internal/config"
 	"github.com/zerodotfive/crabcore/internal/paths"
 	"github.com/zerodotfive/crabcore/pkg/fetch"
+	"github.com/zerodotfive/crabcore/pkg/logger"
 	"github.com/zerodotfive/crabcore/pkg/pluginapi"
 
 	"github.com/spf13/cobra"
@@ -54,13 +55,13 @@ func Load(cfg *config.LocalConfig, rootCmd *cobra.Command) error {
 
 		for _, module := range *modules {
 			moduleConfigPath := paths.ModuleConfigPath(plugin.Name, module.GetName())
-			moduleConfig, err := fetch.Fetch(moduleConfigPath)
+			moduleConfig, err := fetch.Fetch(moduleConfigPath, false)
 			if err != nil && !os.IsNotExist(err) {
 				return err
 			}
 
 			if err := module.Init(moduleConfig); err != nil {
-				fmt.Printf("error loading plugin config %s: %s\n", moduleConfig, err)
+				logger.L.Error(fmt.Sprintf("error loading plugin '%s' config '%s': %s", plugin.Name, module.GetName(), err.Error()))
 				continue
 			}
 			moduleRoot, _ := module.Commands()
@@ -85,7 +86,7 @@ func newLoader(pluginPath string) (*Loader, error) {
 				return nil, err
 			}
 
-			fmt.Printf("%s is built with a different version of package, restarting\n", pluginPath)
+			logger.L.Error(fmt.Sprintf("%s is built with a different version of package, restarting", pluginPath))
 			return nil, syscall.Exec(exePath, os.Args, os.Environ())
 		}
 

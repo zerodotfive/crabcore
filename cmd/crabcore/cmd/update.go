@@ -28,8 +28,7 @@ func init() {
 			if cfgURL == "" {
 				if cfg.URL == "" {
 					return fmt.Errorf(
-						"no config url found in config or commandline.\n" +
-							"Run `crabcore update --config <config url or filename>`\n",
+						"No config url found in config or commandline. Run `crabcore update --config <config url or filename>`",
 					)
 				}
 

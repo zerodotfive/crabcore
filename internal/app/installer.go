@@ -50,7 +50,7 @@ func ensureBin(binInstallPath string) error {
 		return err
 	}
 
-	changed, err := fetch.EnsureFile(currentExecutable, binInstallPath, "", 0755)
+	changed, err := fetch.EnsureFile(currentExecutable, binInstallPath, 0755)
 	if err != nil {
 		return err
 	}

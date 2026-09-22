@@ -33,8 +33,12 @@ func (m *loginModule) Commands() (*cobra.Command, error) {
 		Use:   m.GetName(),
 		Short: fmt.Sprintf("Login against kubernetes cluster"),
 		//Hidden: true,
-		Long: fmt.Sprintf("crabcore kubernetes login <cluster name>]"),
+		Long: fmt.Sprintf("crabcore kubernetes login <cluster name>"),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return cmd.Help()
+			}
+
 			command := exec.Command("bash", "-c", m.Clusters[args[0]], args[0])
 			command.Env = append(os.Environ(),
 				"KNAME="+args[0],

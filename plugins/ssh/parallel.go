@@ -51,6 +51,10 @@ func (m *sshParallelModule) GetName() string {
 }
 
 func (m *sshParallelModule) Init(config []byte) error {
+	if len(config) == 0 {
+		return errors.New("empty config")
+	}
+
 	if err := yaml.Unmarshal(config, m); err != nil {
 		return err
 	}

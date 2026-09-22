@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path"
@@ -66,7 +67,7 @@ func (m *installModule) Commands() (*cobra.Command, error) {
 }
 
 func (m *installModule) run() (string, error) {
-	_, err := fetch.EnsureFile(m.kubectlUrl, m.kubectlPath, ".sha256", 0755)
+	_, err := fetch.EnsureFileWithSHA256WithProgress(m.kubectlUrl, m.kubectlPath, ".sha256", 0755)
 	if err != nil {
 		return "", err
 	}
@@ -77,22 +78,51 @@ func (m *installModule) run() (string, error) {
 	}
 
 	if kubeloginLocalSHA256 != m.KubeloginSHA256[runtime.GOOS+"-"+runtime.GOARCH] {
-		_, err = fetch.EnsureFileFromZipSHA256(m.kubeloginUrl, "kubelogin", m.kubeloginPath, ".sha256", 0755)
+		_, err = fetch.EnsureFileFromZipWithSHA256WithProgress(m.kubeloginUrl, "kubelogin", m.kubeloginPath, ".sha256", 0755)
 		if err != nil {
 			return "", err
 		}
 	}
 
-	helmLocalSHA256, err := fetch.GetSHA256(m.kubeloginPath)
+	helmLocalSHA256, err := fetch.GetSHA256(m.helmPath)
 	if err != nil {
 		return "", err
 	}
 
 	if helmLocalSHA256 != m.HelmSHA256[runtime.GOOS+"-"+runtime.GOARCH] {
-		_, err = fetch.EnsureFileFromTarSHA256(m.helmUrl, runtime.GOOS+"-"+runtime.GOARCH+"/helm", m.helmPath, ".sha256sum", 0755)
+		_, err = fetch.EnsureFileFromTarSHA256WithProgress(m.helmUrl, runtime.GOOS+"-"+runtime.GOARCH+"/helm", m.helmPath, ".sha256sum", 0755)
 		if err != nil {
 			return "", err
 		}
+	}
+
+	shell := path.Base(os.Getenv("SHELL"))
+	rcFile := ""
+	kubectlCompletion := ""
+
+	switch shell {
+	case "bash":
+		rcFile = path.Join(os.Getenv("HOME"), ".bashrc")
+		kubectlCompletion = `eval "$(kubectl completion bash)"`
+	case "zsh":
+		rcFile = path.Join(os.Getenv("HOME"), ".zshrc")
+		kubectlCompletion = `source <(kubectl completion zsh)`
+	default:
+	}
+
+	content, _ := os.ReadFile(rcFile)
+	if content == nil {
+		content = []byte("")
+	}
+
+	if bytes.Contains(content, []byte(kubectlCompletion)) {
+		return "ok", nil
+	}
+
+	newContent := append(content, kubectlCompletion...)
+	err = os.WriteFile(rcFile, newContent, 0644)
+	if err != nil {
+		return "", err
 	}
 
 	return "ok", nil

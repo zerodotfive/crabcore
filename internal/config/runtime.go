@@ -15,7 +15,7 @@ type RuntimeConfig struct {
 }
 
 func (c *RuntimeConfig) Read(url string) error {
-	body, err := fetch.Fetch(url)
+	body, err := fetch.Fetch(url, false)
 	if err != nil {
 		return err
 	}

@@ -16,7 +16,7 @@ func Update(url string, dest string) (bool, error) {
 		return true, nil
 	}
 
-	changed, err := fetch.EnsureFile(url, dest, ".sha256", 0755)
+	changed, err := fetch.EnsureFileWithSHA256WithProgress(url, dest, ".sha256", 0755)
 	if err != nil {
 		return false, err
 	}

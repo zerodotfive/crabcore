@@ -19,5 +19,5 @@ func ensureLib(pluginPath string, url string, forceUpdate bool) (bool, error) {
 		return false, fmt.Errorf("%s: %s", libDir, err)
 	}
 
-	return fetch.EnsureFile(url, pluginPath, ".sha256", 0755)
+	return fetch.EnsureFileWithSHA256WithProgress(url, pluginPath, ".sha256", 0755)
 }

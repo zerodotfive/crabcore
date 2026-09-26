@@ -5,7 +5,7 @@ import (
 	"runtime"
 
 	"github.com/zerodotfive/crabcore/internal/config"
-	"github.com/zerodotfive/crabcore/internal/paths"
+	"github.com/zerodotfive/crabcore/pkg/paths"
 )
 
 func Update(cfg *config.LocalConfig) (bool, error) {

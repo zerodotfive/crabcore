@@ -122,6 +122,10 @@ func (m *exampleModule) GetName() string {
 	return "example"
 }
 
+func (m *exampleModule) IsRootAllowed() bool {
+	return false
+}
+
 func (m *exampleModule) Init(config []byte) error {
 	return nil
 }
@@ -130,6 +134,9 @@ func (m *exampleModule) Commands() (*cobra.Command, error) {
 	return &cobra.Command{
 		Use:   m.GetName(),
 		Short: "Example crabcore command",
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return nil, cobra.ShellCompDirectiveNoFileComp
+		},
 		//Hidden: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			_, err := m.run()
@@ -165,6 +172,12 @@ For example:
 return &cobra.Command{
     Use:   m.GetName(),
     Short: "Example crabcore command",
+    ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+        return nil, cobra.ShellCompDirectiveNoFileComp
+    },
+    Annotations: map[string]string{
+        "run-on-update": "true",
+    },
     //Hidden: true,
     RunE: func(cmd *cobra.Command, args []string) error {
         _, err := m.run()
@@ -187,11 +200,22 @@ Each module can have its own configuration URL:
 
 ```yaml
 plugins:
-  - plugin: example
-    filename: example.so
-    url: https://example.com/example.so
+  - plugin: ssh
+    filename: ssh.so
+    url:
+      linux-amd64: <site/dir url>/ssh-linux-amd64.so
+      <os>-<arch>: <site/dir url>/ssh-<os>-<arch>.so
     moduleConfig:
-      example: https://example.com/example.yaml
+      configure: <site/dir url>/ssh-config.yaml
+      parallel: <site/dir url>/ssh-parallel.yaml
+  - plugin: kubernetes
+    filename: kubernetes.so
+    url:
+      linux-amd64: <site/dir url>/kubernetes-linux-amd64.so
+      <os>-<arch>: <site/dir url>/kubernetes-<os>-<arch>.so
+    moduleConfig:
+      install: <site/dir url>/kubernetes-configure.yaml
+      parallel: <site/dir url>/kubernetes-login.yaml
 ```
 
 The contents of the file are passed to:

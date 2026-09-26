@@ -9,6 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/zerodotfive/crabcore/pkg/fetch"
+	"github.com/zerodotfive/crabcore/pkg/paths"
 	"gopkg.in/yaml.v3"
 )
 
@@ -30,6 +31,10 @@ func (m *installModule) GetName() string {
 	return "install"
 }
 
+func (m *installModule) IsRootAllowed() bool {
+	return false
+}
+
 func (m *installModule) Init(config []byte) error {
 	err := yaml.Unmarshal(config, m)
 	if err != nil {
@@ -37,13 +42,13 @@ func (m *installModule) Init(config []byte) error {
 	}
 
 	m.kubectlUrl = fmt.Sprintf("https://dl.k8s.io/release/%s/bin/%s/%s/kubectl", m.KubectlVersion, runtime.GOOS, runtime.GOARCH)
-	m.kubectlPath = path.Join(os.Getenv("HOME"), ".local/bin", "kubectl")
+	m.kubectlPath = path.Join(paths.BinDir(), "kubectl")
 
 	m.kubeloginUrl = fmt.Sprintf("https://github.com/int128/kubelogin/releases/download/%s/kubelogin_%s_%s.zip", m.KubeloginVersion, runtime.GOOS, runtime.GOARCH)
-	m.kubeloginPath = path.Join(os.Getenv("HOME"), ".local/bin", "kubectl-oidc_login")
+	m.kubeloginPath = path.Join(paths.BinDir(), "kubectl-oidc_login")
 
 	m.helmUrl = fmt.Sprintf("https://get.helm.sh/helm-%s-%s-%s.tar.gz", m.HelmVersion, runtime.GOOS, runtime.GOARCH)
-	m.helmPath = path.Join(os.Getenv("HOME"), ".local/bin", "helm")
+	m.helmPath = path.Join(paths.BinDir(), "helm")
 
 	return nil
 }
@@ -52,7 +57,9 @@ func (m *installModule) Commands() (*cobra.Command, error) {
 	return &cobra.Command{
 		Use:   m.GetName(),
 		Short: "Install kubernetes tools",
-		//Hidden: true,
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return nil, cobra.ShellCompDirectiveNoFileComp
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := m.run()
 			if err != nil {
@@ -102,10 +109,10 @@ func (m *installModule) run() (string, error) {
 
 	switch shell {
 	case "bash":
-		rcFile = path.Join(os.Getenv("HOME"), ".bashrc")
+		rcFile = path.Join(paths.Home(), ".bashrc")
 		kubectlCompletion = `eval "$(kubectl completion bash)"`
 	case "zsh":
-		rcFile = path.Join(os.Getenv("HOME"), ".zshrc")
+		rcFile = path.Join(paths.Home(), ".zshrc")
 		kubectlCompletion = `source <(kubectl completion zsh)`
 	default:
 	}

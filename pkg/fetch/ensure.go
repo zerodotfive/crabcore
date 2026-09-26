@@ -52,23 +52,23 @@ func ensureFile(url string, dest string, remoteSHAFileSuffix string, mode fs.Fil
 	}
 
 	if remoteSHAFileSuffix != "" {
-		remoteSHA256byte, _ := Fetch(url+remoteSHAFileSuffix, false)
-		if remoteSHA256byte != nil {
-			remoteSHA256 = strings.TrimSpace(string(remoteSHA256byte))
-			fields := strings.Fields(remoteSHA256)
-			if len(fields) > 1 {
-				remoteSHA256 = fields[0]
-			}
+		remoteSHA256byte, err := Fetch(url+remoteSHAFileSuffix, false)
+		if err != nil {
+			logger.L.Info(fmt.Sprintf("will try to get full file sum %s, because of remote sum fetch error: %s", url, err.Error()))
+		}
+
+		remoteSHA256 = strings.TrimSpace(string(remoteSHA256byte))
+		fields := strings.Fields(remoteSHA256)
+		if len(fields) > 1 {
+			remoteSHA256 = fields[0]
 		}
 
 		if localSHA256 != "" && localSHA256 == remoteSHA256 {
 			return false, nil
 		}
 
-		if err != nil {
-			logger.L.Info(fmt.Sprintf("Trying get full file sum %s, because of remote sum fetch error: %s", url, err.Error()))
-		} else {
-			logger.L.Info(fmt.Sprintf("Trying get full file sum %s, because of local '%s' and remote '%s' is not equal", url, localSHA256, remoteSHA256))
+		if err == nil {
+			logger.L.Info(fmt.Sprintf("will try to get full file sum %s, because of local '%s' and remote '%s' is not equal", url, localSHA256, remoteSHA256))
 		}
 	}
 
@@ -84,7 +84,7 @@ func ensureFile(url string, dest string, remoteSHAFileSuffix string, mode fs.Fil
 		return false, nil
 	}
 
-	logger.L.Info(fmt.Sprintf("Will update %s, because of SHA old '%s' new '%s'", dest, localSHA256, remoteSHA256))
+	logger.L.Info(fmt.Sprintf("will update %s, because of SHA old '%s' new '%s'", dest, localSHA256, remoteSHA256))
 
 	tmp, err := os.CreateTemp(destDir, ".crabcore-*")
 	if err != nil {

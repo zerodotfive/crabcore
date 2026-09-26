@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/zerodotfive/crabcore/internal/app"
 	"github.com/zerodotfive/crabcore/internal/config"
 	"github.com/zerodotfive/crabcore/internal/pluginmanager"
@@ -23,6 +24,9 @@ var (
 		CompletionOptions: cobra.CompletionOptions{
 			DisableDescriptions: true,
 		},
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return nil, cobra.ShellCompDirectiveNoFileComp
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return cmd.Help()
@@ -33,44 +37,59 @@ var (
 	}
 )
 
+func selfInstall() error {
+	if os.Getuid() > 0 {
+		inst, err := app.NewInstaller()
+		if err != nil {
+			return err
+		}
+
+		selfInstaller = &inst
+		return (*selfInstaller).Ensure()
+	}
+
+	logger.L.Warn("skipping self install, because running as root")
+
+	return nil
+}
+
 func init() {
-	inst, err := app.NewInstaller()
-	if err != nil {
-		logger.L.Error(err.Error())
-		os.Exit(1)
-	}
-
-	selfInstaller = &inst
-
-	if err := (*selfInstaller).Ensure(); err != nil {
-		logger.L.Error(err.Error())
-		os.Exit(1)
-	}
-
 	rootCmd.PersistentFlags().CountVarP(&verbosity, "verbosity", "v", "verbosity level")
+	verbosityFlag := pflag.NewFlagSet("verbosity", pflag.ContinueOnError)
+	verbosityFlag.ParseErrorsAllowlist.UnknownFlags = true
+	verbosityFlag.AddFlag(rootCmd.PersistentFlags().Lookup("verbosity"))
+	_ = verbosityFlag.Parse(os.Args)
+
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "version",
 		Short: "Print version",
 		Args:  cobra.NoArgs,
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return nil, cobra.ShellCompDirectiveNoFileComp
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Printf("crabcore version %s\n", version.CrabcoreVersion)
 		},
 	})
-
 	rootCmd.SetHelpCommand(&cobra.Command{
 		Hidden: true,
 	})
 
-	cobra.OnInitialize(func() {
-		logger.SetVerbose(verbosity)
-	})
+	logger.SetVerbosity(verbosity)
+
+	if err := selfInstall(); err != nil {
+		logger.L.Error(err.Error())
+		os.Exit(1)
+	}
 
 	cfg = &config.LocalConfig{}
+
 	if err := cfg.Read(); err != nil {
+		logger.L.Warn(err.Error())
 		return
 	}
 
-	if err := pluginmanager.Load(cfg, rootCmd); err != nil {
+	if err := pluginmanager.LoadAll(cfg, rootCmd, os.Getuid() > 0); err != nil {
 		logger.L.Error(err.Error())
 		os.Exit(1)
 	}

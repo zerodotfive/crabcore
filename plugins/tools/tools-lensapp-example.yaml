@@ -1,0 +1,4 @@
+---
+lensDMGUrl:
+  arm64: https://api.k8slens.dev/binaries/Lens-2026.9.181013-latest-arm64.dmg
+  amd64: https://api.k8slens.dev/binaries/Lens-2026.9.181013-latest.dmg

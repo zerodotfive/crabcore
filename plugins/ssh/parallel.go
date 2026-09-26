@@ -17,6 +17,7 @@ import (
 	"sync"
 
 	"github.com/spf13/cobra"
+	"github.com/zerodotfive/crabcore/pkg/paths"
 	"gopkg.in/yaml.v3"
 )
 
@@ -50,6 +51,10 @@ func (m *sshParallelModule) GetName() string {
 	return "parallel"
 }
 
+func (m *sshParallelModule) IsRootAllowed() bool {
+	return false
+}
+
 func (m *sshParallelModule) Init(config []byte) error {
 	if len(config) == 0 {
 		return errors.New("empty config")
@@ -63,7 +68,7 @@ func (m *sshParallelModule) Init(config []byte) error {
 
 	reAutocompleteHostRegex := regexp.MustCompile(m.AutocompleteHostRegex)
 
-	sshConfigDPath := path.Join(os.Getenv("HOME"), ".ssh/crabcore.d")
+	sshConfigDPath := path.Join(paths.Home(), ".ssh/crabcore.d")
 
 	entries, err := os.ReadDir(sshConfigDPath)
 	if err != nil {
@@ -126,6 +131,15 @@ func (m *sshParallelModule) Commands() (*cobra.Command, error) {
 		Use:   m.GetName(),
 		Short: fmt.Sprintf("Run commands on multiple hosts"),
 		Long:  fmt.Sprintf("crabcore ssh parallel <host regex> <command> [args]"),
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			if len(args) == 0 {
+				return m.sshHosts, cobra.ShellCompDirectiveNoFileComp
+			}
+			if len(args) == 1 {
+				return slices.Collect(maps.Keys(m.CommandsDefinition)), cobra.ShellCompDirectiveNoFileComp
+			}
+			return nil, cobra.ShellCompDirectiveNoFileComp
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 2 {
 				return cmd.Help()
@@ -154,15 +168,6 @@ func (m *sshParallelModule) Commands() (*cobra.Command, error) {
 			}
 
 			return nil
-		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			if len(args) == 0 {
-				return m.sshHosts, cobra.ShellCompDirectiveNoFileComp
-			}
-			if len(args) == 1 {
-				return slices.Collect(maps.Keys(m.CommandsDefinition)), cobra.ShellCompDirectiveNoFileComp
-			}
-			return nil, cobra.ShellCompDirectiveNoFileComp
 		},
 	}
 

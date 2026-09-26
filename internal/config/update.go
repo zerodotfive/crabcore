@@ -5,8 +5,8 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/zerodotfive/crabcore/internal/paths"
 	"github.com/zerodotfive/crabcore/pkg/fetch"
+	"github.com/zerodotfive/crabcore/pkg/paths"
 )
 
 func Update(cfg *LocalConfig, url string, forceRefetch bool) (bool, error) {

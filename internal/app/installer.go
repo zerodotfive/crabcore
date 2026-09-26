@@ -11,8 +11,8 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/zerodotfive/crabcore/internal/paths"
 	"github.com/zerodotfive/crabcore/pkg/fetch"
+	"github.com/zerodotfive/crabcore/pkg/paths"
 )
 
 type Installer interface {

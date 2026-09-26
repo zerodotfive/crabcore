@@ -3,7 +3,7 @@ package config
 import (
 	"os"
 
-	"github.com/zerodotfive/crabcore/internal/paths"
+	"github.com/zerodotfive/crabcore/pkg/paths"
 
 	yaml "gopkg.in/yaml.v3"
 )

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/zerodotfive/crabcore/internal/paths"
+	"github.com/zerodotfive/crabcore/pkg/paths"
 )
 
 type InstallerDarwin struct {

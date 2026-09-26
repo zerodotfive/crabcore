@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"syscall"
 
+	"github.com/spf13/pflag"
 	"github.com/zerodotfive/crabcore/internal/app"
 	"github.com/zerodotfive/crabcore/internal/config"
 	"github.com/zerodotfive/crabcore/internal/pluginmanager"
@@ -21,14 +22,21 @@ func init() {
 	updateCmd := &cobra.Command{
 		Use:   "update",
 		Short: "Update config and plugins",
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return nil, cobra.ShellCompDirectiveNoFileComp
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if os.Getuid() == 0 {
+				return fmt.Errorf("should not run update as root")
+			}
+
 			changed := false
 			tmpChanged := false
 
 			if cfgURL == "" {
 				if cfg.URL == "" {
 					return fmt.Errorf(
-						"No config url found in config or commandline. Run `crabcore update --config <config url or filename>`",
+						"no config url found in config or commandline. Run `crabcore update --config <config url or filename>`",
 					)
 				}
 
@@ -73,6 +81,10 @@ func init() {
 		"",
 		"Config url or filename",
 	)
+	configFlag := pflag.NewFlagSet("config", pflag.ContinueOnError)
+	configFlag.ParseErrorsAllowlist.UnknownFlags = true
+	configFlag.AddFlag(updateCmd.Flags().Lookup("config"))
+	_ = configFlag.Parse(os.Args)
 
 	rootCmd.AddCommand(updateCmd)
 }

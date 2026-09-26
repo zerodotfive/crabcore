@@ -19,6 +19,10 @@ func (m *loginModule) GetName() string {
 	return "login"
 }
 
+func (m *loginModule) IsRootAllowed() bool {
+	return false
+}
+
 func (m *loginModule) Init(config []byte) error {
 	err := yaml.Unmarshal(config, m)
 	if err != nil {
@@ -32,8 +36,10 @@ func (m *loginModule) Commands() (*cobra.Command, error) {
 	return &cobra.Command{
 		Use:   m.GetName(),
 		Short: fmt.Sprintf("Login against kubernetes cluster"),
-		//Hidden: true,
-		Long: fmt.Sprintf("crabcore kubernetes login <cluster name>"),
+		Long:  fmt.Sprintf("crabcore kubernetes login <cluster name>"),
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return slices.Collect(maps.Keys(m.Clusters)), cobra.ShellCompDirectiveNoFileComp
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return cmd.Help()
@@ -45,9 +51,6 @@ func (m *loginModule) Commands() (*cobra.Command, error) {
 			)
 
 			return command.Run()
-		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return slices.Collect(maps.Keys(m.Clusters)), cobra.ShellCompDirectiveNoFileComp
 		},
 	}, nil
 }

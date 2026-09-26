@@ -31,7 +31,7 @@ func (h *PlainHandler) Enabled(_ context.Context, level slog.Level) bool {
 }
 
 func (h *PlainHandler) Handle(_ context.Context, r slog.Record) error {
-	_, err := fmt.Fprintln(h.w, r.Message)
+	_, err := fmt.Fprintf(h.w, "[%s] %s\n", r.Level, r.Message)
 	return err
 }
 
@@ -42,19 +42,17 @@ func init() {
 func (h *PlainHandler) WithAttrs(attrs []slog.Attr) slog.Handler { return h }
 func (h *PlainHandler) WithGroup(name string) slog.Handler       { return h }
 
-func SetVerbose(verbosity int) {
-	if verbosity > 4 {
-		verbosity = 4
+func SetVerbosity(verbosity int) {
+	if verbosity > 3 {
+		verbosity = 3
 	}
 
 	switch verbosity {
 	case 1:
 		level.Set(slog.LevelWarn)
 	case 2:
-		level.Set(slog.LevelWarn)
-	case 3:
 		level.Set(slog.LevelInfo)
-	case 4:
+	case 3:
 		level.Set(slog.LevelDebug)
 	default:
 		level.Set(slog.LevelError)

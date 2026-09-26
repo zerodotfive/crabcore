@@ -39,6 +39,10 @@ func (m *exampleModule) GetName() string {
 	return "example"
 }
 
+func (m *exampleModule) IsRootAllowed() bool {
+	return false
+}
+
 func (m *exampleModule) Init(config []byte) error {
 	return nil
 }
@@ -47,6 +51,9 @@ func (m *exampleModule) Commands() (*cobra.Command, error) {
 	return &cobra.Command{
 		Use:   m.GetName(),
 		Short: "Example crabcore command",
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return nil, cobra.ShellCompDirectiveNoFileComp
+		},
 		//Hidden: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			_, err := m.run()

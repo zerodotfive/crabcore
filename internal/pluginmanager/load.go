@@ -1,144 +1,78 @@
 package pluginmanager
 
 import (
+	"debug/buildinfo"
 	"fmt"
 	"os"
-	goplugin "plugin"
 	"runtime"
-	"strings"
-	"syscall"
-
-	"github.com/zerodotfive/crabcore/internal/config"
-	"github.com/zerodotfive/crabcore/internal/paths"
-	"github.com/zerodotfive/crabcore/pkg/fetch"
-	"github.com/zerodotfive/crabcore/pkg/logger"
-	"github.com/zerodotfive/crabcore/pkg/pluginapi"
 
 	"github.com/spf13/cobra"
+	"github.com/zerodotfive/crabcore/internal/config"
+	"github.com/zerodotfive/crabcore/pkg/logger"
+	"github.com/zerodotfive/crabcore/pkg/paths"
 )
 
-type Loader struct {
-	plugin *goplugin.Plugin
+func loadPlugin(plugin config.Plugin, rootCmd *cobra.Command, doEnsureLib bool) error {
+	pluginLibPath := paths.PluginLibPath(plugin.Filename)
+	osarch := runtime.GOOS + "-" + runtime.GOARCH
+	if _, ok := plugin.URL[osarch]; !ok {
+		return fmt.Errorf("no plugin url for platform %s found", osarch)
+	}
+
+	if doEnsureLib {
+		if _, err := ensureLib(pluginLibPath, plugin.URL[osarch], false); err != nil {
+			return err
+		}
+	}
+
+	pluginRoot, err := plugin.GetPluginRootCommand()
+	if err != nil {
+		return err
+	}
+
+	if err := plugin.LoadAllModules(); err != nil {
+		return err
+	}
+
+	if len(pluginRoot.Commands()) == 0 {
+		logger.L.Warn(fmt.Sprintf("no modules loaded for plugin %s, skipping plugin", plugin.Name))
+		return nil
+	}
+
+	rootCmd.AddCommand(pluginRoot)
+
+	return nil
 }
 
-func Load(cfg *config.LocalConfig, rootCmd *cobra.Command) error {
+func checkPluginGoVersionConflict(pluginFilename string) (error, bool) {
+	pluginLibPath := paths.PluginLibPath(pluginFilename)
+	if _, err := os.Stat(pluginLibPath); err != nil {
+		return nil, false
+	}
+
+	info, err := buildinfo.ReadFile(pluginLibPath)
+	if err != nil {
+		return err, true
+	}
+
+	return nil, info.GoVersion != runtime.Version()
+}
+
+func LoadAll(cfg *config.LocalConfig, rootCmd *cobra.Command, doEnsureLib bool) error {
 	if cfg.Cache == nil {
 		return nil
 	}
 
 	for _, plugin := range cfg.Cache.Plugins {
-		pluginLibPath := paths.PluginLibPath(plugin.Filename)
-
-		osarch := runtime.GOOS + "-" + runtime.GOARCH
-		if _, ok := plugin.URL[osarch]; !ok {
-			return fmt.Errorf("no plugin url for platform %s found", osarch)
+		if err, conflict := checkPluginGoVersionConflict(plugin.Filename); err != nil || conflict {
+			logger.L.Warn("plugin " + plugin.Name + " go runtime version conflict, skipping plugins load")
+			break
 		}
-		if _, err := ensureLib(pluginLibPath, plugin.URL[osarch], false); err != nil {
+
+		if err := loadPlugin(plugin, rootCmd, doEnsureLib); err != nil {
 			return err
-		}
-
-		loader, err := newLoader(pluginLibPath)
-		if err != nil {
-			return err
-		}
-
-		pluginRoot, modules, err := loader.getContents()
-		if err != nil {
-			return err
-		}
-
-		pluginRootCommand, err := pluginRoot()
-		if err != nil {
-			return err
-		}
-		rootCmd.AddCommand(pluginRootCommand)
-
-		for _, module := range *modules {
-			moduleConfigPath := paths.ModuleConfigPath(plugin.Name, module.GetName())
-			moduleConfig, err := fetch.Fetch(moduleConfigPath, false)
-			if err != nil && !os.IsNotExist(err) {
-				return err
-			}
-
-			if err := module.Init(moduleConfig); err != nil {
-				logger.L.Error(fmt.Sprintf("error loading plugin '%s' config '%s': %s", plugin.Name, module.GetName(), err.Error()))
-				continue
-			}
-			moduleRoot, _ := module.Commands()
-
-			pluginRootCommand.AddCommand(moduleRoot)
 		}
 	}
 
 	return nil
-}
-
-func newLoader(pluginPath string) (*Loader, error) {
-	p, err := goplugin.Open(pluginPath)
-	if err != nil {
-		if strings.Contains(err.Error(), "plugin was built with a different version of package") {
-			if err := os.Remove(pluginPath); err != nil {
-				return nil, err
-			}
-
-			exePath, err := os.Executable()
-			if err != nil {
-				return nil, err
-			}
-
-			logger.L.Error(fmt.Sprintf("%s is built with a different version of package, restarting", pluginPath))
-			return nil, syscall.Exec(exePath, os.Args, os.Environ())
-		}
-
-		return nil, fmt.Errorf("%s: %s", pluginPath, err)
-	}
-
-	return &Loader{
-		plugin: p,
-	}, nil
-}
-
-func (l *Loader) getSymbols() (func() (*cobra.Command, error), []string, error) {
-	symPlugin, err := l.plugin.Lookup("CrabcorePlugin")
-	if err != nil {
-		return nil, nil, err
-	}
-
-	s, ok := symPlugin.(pluginapi.SymbolProvider)
-	if !ok {
-		return nil, nil, fmt.Errorf("unexpected type symbol in plugin")
-	}
-
-	root := s.GetRoot
-
-	symbols := s.GetSymbols()
-	if len(symbols) == 0 {
-		return nil, nil, fmt.Errorf("no symbols found")
-	}
-
-	return root, symbols, nil
-}
-
-func (l *Loader) getContents() (func() (*cobra.Command, error), *map[string]pluginapi.Module, error) {
-	root, symbols, err := l.getSymbols()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	modules := make(map[string]pluginapi.Module)
-
-	for _, symbol := range symbols {
-		symMod, err := l.plugin.Lookup(symbol)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		m, ok := symMod.(pluginapi.Module)
-		if !ok {
-			return nil, nil, fmt.Errorf("unexpected type symbol %s in module", symbol)
-		}
-		modules[symbol] = m
-	}
-
-	return root, &modules, nil
 }

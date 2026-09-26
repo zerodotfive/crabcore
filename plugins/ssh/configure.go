@@ -9,6 +9,7 @@ import (
 	"path"
 
 	"github.com/spf13/cobra"
+	"github.com/zerodotfive/crabcore/pkg/paths"
 	"gopkg.in/yaml.v3"
 )
 
@@ -26,13 +27,17 @@ func (m *sshConfigureModule) GetName() string {
 	return "configure"
 }
 
+func (m *sshConfigureModule) IsRootAllowed() bool {
+	return false
+}
+
 func (m *sshConfigureModule) Init(config []byte) error {
 	if len(config) == 0 {
 		return errors.New("empty config")
 	}
 
-	m.sshConfigPath = path.Join(os.Getenv("HOME"), ".ssh/config")
-	m.sshConfigdPath = path.Join(os.Getenv("HOME"), ".ssh/crabcore.d")
+	m.sshConfigPath = path.Join(paths.Home(), ".ssh/config")
+	m.sshConfigdPath = path.Join(paths.Home(), ".ssh/crabcore.d")
 
 	return yaml.Unmarshal(config, &m.sshConfigdEntries)
 }
@@ -41,7 +46,9 @@ func (m *sshConfigureModule) Commands() (*cobra.Command, error) {
 	moduleRoot := &cobra.Command{
 		Use:   m.GetName(),
 		Short: fmt.Sprintf("(Re)configure %s, %s from plugin cache", m.sshConfigPath, m.sshConfigdPath),
-		//Hidden: true,
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return nil, cobra.ShellCompDirectiveNoFileComp
+		},
 		Annotations: map[string]string{
 			"run-on-update": "true",
 		},

@@ -1,4 +1,4 @@
-all: crabcore ssh kubernetes
+all: crabcore ssh kubernetes tools
 
 VERSION_PKG := github.com/zerodotfive/crabcore/internal/version
 VERSION := $(shell git describe --tags --exact-match 2>/dev/null || git rev-parse HEAD)
@@ -20,3 +20,6 @@ ssh: go-mod-download
 
 kubernetes: go-mod-download
 	go build --buildmode=plugin -o ./lib/kubernetes.so ./plugins/kubernetes
+
+tools: go-mod-download
+	go build --buildmode=plugin -o ./lib/tools.so ./plugins/tools

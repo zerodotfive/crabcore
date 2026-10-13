@@ -101,6 +101,8 @@ eval "$(crabcore completion bash)"
 
 func ensureZshrc() error {
 	crabcoreLines := []byte(`
+autoload -Uz compinit
+compinit
 PATH="$HOME/.local/bin:$PATH"
 eval "source <(crabcore completion zsh)"
 `)

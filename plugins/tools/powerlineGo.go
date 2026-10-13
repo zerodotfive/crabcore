@@ -26,10 +26,9 @@ var powerlineGoLinuxFontconfigFileContents = []byte(`<?xml version="1.0"?>
   </alias>
 </fontconfig>`)
 
-var powerlineGoMacOSInstructions = []byte(`Install one of
-NERD FONTS https://www.nerdfonts.com/font-downloads
-or
-POWERLINE FONTS https://github.com/powerline/fonts
+var powerlineGoMacOSInstructions = []byte(`NOTE!
+In case you experiencing a problem with symbols in terminal, install one of
+NERD FONTS https://www.nerdfonts.com/font-downloads or POWERLINE FONTS https://github.com/powerline/fonts
 then put it into ~/Library/Fonts directory and select it in your terminal settings`)
 
 type powerlineGoModule struct {
@@ -183,7 +182,7 @@ func (m *powerlineGoModule) powerlineGo() (string, error) {
 	filename := "powerline-go-" + runtime.GOOS + "-" + runtime.GOARCH
 	remoteSHA256Sum, err := getPowerlineGoSHA256SumByOSArch(filename, m.PowerlineGoVersion)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("could not get remote checksum for %s: %s", filename, err.Error())
 	}
 
 	localSHA256Sum, err := fetch.GetSHA256(m.powerlineGoPath)
@@ -192,19 +191,19 @@ func (m *powerlineGoModule) powerlineGo() (string, error) {
 	}
 
 	if localSHA256Sum != remoteSHA256Sum {
-		url := fmt.Sprintf("https://github.com/justjanne/powerline-go/releases/download/%s/powerline-go-linux-amd64", m.PowerlineGoVersion)
+		url := fmt.Sprintf("https://github.com/justjanne/powerline-go/releases/download/%s/powerline-go-"+runtime.GOOS+"-"+runtime.GOARCH, m.PowerlineGoVersion)
 		_, err = fetch.EnsureFileWithProgress(url, m.powerlineGoPath, 0755)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("could not download %s: %s", url, err.Error())
 		}
 	}
 
 	if err := m.powerlineGoShellRC(); err != nil {
-		return "", err
+		return "", fmt.Errorf("could not install shell rc: %s", err.Error())
 	}
 
 	if err := m.powerlineGoFonts(); err != nil {
-		return "", err
+		return "", fmt.Errorf("could not install fonts: %s", err.Error())
 	}
 
 	return "ok", nil

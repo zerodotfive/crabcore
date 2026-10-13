@@ -168,15 +168,15 @@ func (m *lensappModule) lensappInstallMacos() (string, error) {
 		return fmt.Sprintf(lensappAnyErrorTemplate), err
 	}
 
-	if err := run.Cmd("hdiutil attach " + tmp.Name()); err != nil {
+	if err := run.Cmd("hdiutil", "attach", "-mountpoint", "/Volumes/Lensapp", tmp.Name()); err != nil {
 		return fmt.Sprintf(lensappAnyErrorTemplate), err
 	}
 
-	if err := run.Cmd("cp -a /Volumes/lensapp/Lens.app /Applications/Lens.app"); err != nil {
+	if err := run.Cmd("cp", "-a", "/Volumes/Lensapp/Lens.app", "/Applications/Lens.app"); err != nil {
 		return fmt.Sprintf(lensappAnyErrorTemplate), err
 	}
 
-	if err := run.Cmd("hdiutil detach " + tmp.Name()); err != nil {
+	if err := run.Cmd("hdiutil", "detach", "-force", "/Volumes/Lensapp"); err != nil {
 		return fmt.Sprintf(lensappAnyErrorTemplate), err
 	}
 

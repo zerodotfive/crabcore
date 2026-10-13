@@ -180,15 +180,15 @@ func (m *freelensModule) freelensInstallMacos() (string, error) {
 		return fmt.Sprintf(freelensAnyErrorTemplate), err
 	}
 
-	if err := run.Cmd("hdiutil attach " + tmp.Name()); err != nil {
+	if err := run.Cmd("hdiutil", "attach", "-mountpoint", "/Volumes/Freelens", tmp.Name()); err != nil {
 		return fmt.Sprintf(freelensAnyErrorTemplate), err
 	}
 
-	if err := run.Cmd("cp -a /Volumes/freelens/Freelens.app /Applications/Freelens.app"); err != nil {
+	if err := run.Cmd("cp", "-a", "/Volumes/Freelens/Freelens.app", "/Applications/Freelens.app"); err != nil {
 		return fmt.Sprintf(freelensAnyErrorTemplate), err
 	}
 
-	if err := run.Cmd("hdiutil detach " + tmp.Name()); err != nil {
+	if err := run.Cmd("hdiutil", "detach", "-force", "/Volumes/Freelens"); err != nil {
 		return fmt.Sprintf(freelensAnyErrorTemplate), err
 	}
 

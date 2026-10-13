@@ -165,15 +165,21 @@ func (m *dockerModule) dockerInstallMacos() (string, error) {
 		return fmt.Sprintf(dockerAnyErrorTemplate), err
 	}
 
-	if err := run.Cmd("hdiutil attach " + tmp.Name()); err != nil {
+	if err := run.Cmd("hdiutil", "attach", "-mountpoint", "/Volumes/Docker", tmp.Name()); err != nil {
 		return fmt.Sprintf(dockerAnyErrorTemplate), err
 	}
 
-	if err := run.Cmd("/Volumes/Docker/Docker.app/Contents/MacOS/install --accept-license --user=" + os.Getenv("SUDO_USER")); err != nil {
+	if err := run.Cmd("/Volumes/Docker/Docker.app/Contents/MacOS/install", "--accept-license", "--user="+os.Getenv("SUDO_USER")); err != nil {
 		return fmt.Sprintf(dockerAnyErrorTemplate), err
 	}
 
-	if err := run.Cmd("hdiutil detach " + tmp.Name()); err != nil {
+	if runtime.GOARCH == "arm64" {
+		if err := run.Cmd("softwareupdate", "--install-rosetta", "--agree-to-license"); err != nil {
+			return fmt.Sprintf(dockerAnyErrorTemplate), err
+		}
+	}
+
+	if err := run.Cmd("hdiutil", "detach", "-force", "/Volumes/Docker"); err != nil {
 		return fmt.Sprintf(dockerAnyErrorTemplate), err
 	}
 
